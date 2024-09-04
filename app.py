@@ -112,9 +112,9 @@ with st.sidebar:
         type = ["pdf", "txt", "docx"],
         disabled = not is_valid
     )
-    st.link_button("Go to Git repo", "https://github.com/Kosto1221/RAG_with_streamlit.git")
+    st.link_button("Go to Git repo", "https://github.com/Kosto1221/RAG_with_streamlit/blob/main/app.py")
     with st.expander("See Full code"):
-        st.markdown("""
+        st.markdown("""python
             import streamlit as st
             from langchain.document_loaders import UnstructuredFileLoader
             from langchain.embeddings import CacheBackedEmbeddings, OpenAIEmbeddings
@@ -153,7 +153,7 @@ with st.sidebar:
                     f.write(file_content)
                 cache_dir = LocalFileStore(f"./.cache/embeddings/{file.name}")
                 splitter = CharacterTextSplitter.from_tiktoken_encoder(
-                    separator="\n",
+                    separator="\\n",
                     chunk_size=600,
                     chunk_overlap=100,
                 )
@@ -184,7 +184,7 @@ with st.sidebar:
                     )
 
             def format_docs(docs):
-                return "\n\n".join(document.page_content for document in docs)
+                return "\\n\\n".join(document.page_content for document in docs)
 
 
             # Open API Key의 유효성을 검사하는 함수입니다.
