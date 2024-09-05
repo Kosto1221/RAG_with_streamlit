@@ -9,6 +9,7 @@ from langchain.schema.runnable import RunnablePassthrough, RunnableLambda
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 import openai
+import os
 
 st.set_page_config(
     page_title="RAG with Streamlit",
@@ -30,8 +31,15 @@ class ChatCallbackHandler(BaseCallbackHandler):
 
 st.cache_data(show_spinner="Embedding file...")
 def embed_file(file):
-    file_content = file.read()
     file_path = f"./.cache/files/{file.name}"
+
+    folder_path = os.path.dirname(file_path)
+    
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    file_content = file.read()
+
     with open(file_path, "wb") as f:
         f.write(file_content)
     cache_dir = LocalFileStore(f"./.cache/embeddings/{file.name}")
@@ -42,7 +50,7 @@ def embed_file(file):
     )
     loader = UnstructuredFileLoader(file_path)
     docs = loader.load_and_split(text_splitter=splitter)
-    # OpenAIEmbeddings애 api_key를 전달하였습니다.
+    # OpenAIEmbeddings애 api_key를 전달하였습니다. api-key가 환경변수에 저장되어 있는게 아니라면 직접 전달해줘야하는 것 같습니다.
     embeddings = OpenAIEmbeddings(openai_api_key=api_key)
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(embeddings, cache_dir)
     vectorstore = FAISS.from_documents(docs, cached_embeddings)
@@ -70,7 +78,7 @@ def format_docs(docs):
     return "\n\n".join(document.page_content for document in docs)
 
 
-# Open API Key의 유효성을 검사하는 함수입니다.
+# Open API Key의 유효성을 검사하는 함수입니다. openai.Model.list()는 api_key가 유효할 시 사용 가능한 모델들을 반환하고 반대의 경우 에러를 발생시킵니다.
 def validate_api_key(api_key):
     try:
         openai.api_key = api_key
@@ -106,7 +114,7 @@ Upload your files on the sidebar.
 with st.sidebar:
     api_key = st.text_input("Please enter your OpenAI API key", type="password")
     is_valid = validate_api_key(api_key)
-    # Open API Key가 유효하지 않을시 file uploader를 비활성화시킵니다.
+    # Open API Key가 유효하지 않을시 file uploader를 비활성화합니다.
     file = st.file_uploader(
         "Upload a .txt .pdf or .docx file",
         type = ["pdf", "txt", "docx"],
@@ -147,13 +155,20 @@ with st.sidebar:
 
             st.cache_data(show_spinner="Embedding file...")
             def embed_file(file):
-                file_content = file.read()
                 file_path = f"./.cache/files/{file.name}"
+
+                folder_path = os.path.dirname(file_path)
+                
+                if not os.path.exists(folder_path):
+                    os.makedirs(folder_path)
+
+                file_content = file.read()
+
                 with open(file_path, "wb") as f:
                     f.write(file_content)
                 cache_dir = LocalFileStore(f"./.cache/embeddings/{file.name}")
                 splitter = CharacterTextSplitter.from_tiktoken_encoder(
-                    separator="\\n",
+                    separator="\n",
                     chunk_size=600,
                     chunk_overlap=100,
                 )
