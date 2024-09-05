@@ -168,7 +168,7 @@ with st.sidebar:
                     f.write(file_content)
                 cache_dir = LocalFileStore(f"./.cache/embeddings/{file.name}")
                 splitter = CharacterTextSplitter.from_tiktoken_encoder(
-                    separator="\n",
+                    separator="\\n",
                     chunk_size=600,
                     chunk_overlap=100,
                 )
